@@ -122,14 +122,17 @@ else
 fi
 
 # ----------------------------------------------------------------------------
-# Clear stale caches before migrating / re-caching
+# Drop any stale *config* cache so the fresh .env is used from here on.
+# NOTE: we deliberately do NOT clear the application cache yet — with the
+# database cache/session drivers, "cache:clear" touches the `cache` table,
+# which may not exist until migrations have run. That happens below.
 # ----------------------------------------------------------------------------
-log "Clearing caches"
-"$PHP_BIN" artisan optimize:clear
-ok "Caches cleared"
+log "Reloading configuration from .env"
+"$PHP_BIN" artisan config:clear
+ok "Configuration reloaded"
 
 # ----------------------------------------------------------------------------
-# Database migrations
+# Database migrations (must run before touching database-backed cache/session)
 # ----------------------------------------------------------------------------
 if [ "$SKIP_MIGRATIONS" != "1" ]; then
     log "Checking database connection"
@@ -152,9 +155,11 @@ else
 fi
 
 # ----------------------------------------------------------------------------
-# Storage symlink + framework caches
+# Now the schema exists: clear the app cache, then prime framework caches.
 # ----------------------------------------------------------------------------
-log "Linking storage and caching framework files"
+log "Clearing application cache and priming framework caches"
+"$PHP_BIN" artisan cache:clear >/dev/null 2>&1 || true   # database `cache` table now exists
+"$PHP_BIN" artisan view:clear  >/dev/null 2>&1 || true
 "$PHP_BIN" artisan storage:link >/dev/null 2>&1 || true
 "$PHP_BIN" artisan config:cache
 "$PHP_BIN" artisan route:cache
