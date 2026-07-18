@@ -10,13 +10,15 @@ import {
     type Node,
     type NodeMouseHandler,
     ReactFlow,
+    type ReactFlowInstance,
     useEdgesState,
     useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Info, Plus, Users } from 'lucide-react';
+import { Info, LayoutGrid, Plus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { FamilyEdge } from '@/components/family/family-edge';
 import { MemberDetailSheet } from '@/components/family/member-detail-sheet';
 import { MemberFormDialog, type RelateAs } from '@/components/family/member-form-dialog';
 import { MemberNode } from '@/components/family/member-node';
@@ -28,6 +30,7 @@ import SiteLayout from '@/layouts/site-layout';
 import type { Member, Relationship } from '@/types/family';
 
 const nodeTypes = { member: MemberNode };
+const edgeTypes = { family: FamilyEdge };
 
 interface TreeProps {
     members: Member[];
@@ -56,6 +59,7 @@ export default function Tree({ members, relationships }: TreeProps) {
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
 
     const layout = useMemo(() => computeFamilyLayout(members, relationships), [members, relationships]);
 
@@ -76,9 +80,9 @@ export default function Tree({ members, relationships }: TreeProps) {
             target: String(e.childId),
             sourceHandle: 'bottom',
             targetHandle: 'top',
-            type: 'smoothstep',
+            type: 'family',
             style: { stroke: 'var(--color-muted-foreground)', strokeWidth: 1.5 },
-            data: { relationshipId: e.id },
+            data: { relationshipId: e.id, trunkX: e.trunkX },
         }));
 
         const spouseEdges: Edge[] = layout.spouseEdges.map((e) => ({
@@ -148,6 +152,12 @@ export default function Tree({ members, relationships }: TreeProps) {
         }
     }, []);
 
+    // Snap every card back to the auto-computed layout (undoes manual dragging).
+    const autoLayout = useCallback(() => {
+        setNodes((nds) => nds.map((n) => ({ ...n, position: layout.positions[Number(n.id)] ?? n.position })));
+        requestAnimationFrame(() => rfInstance?.fitView({ padding: 0.2, duration: 400 }));
+    }, [layout, rfInstance, setNodes]);
+
     const openCreate = () => setForm({ ...closedForm, open: true, mode: 'create' });
     const openEdit = (member: Member) => setForm({ ...closedForm, open: true, mode: 'edit', member });
     const openAddRelative = (member: Member, relateAs: RelateAs) => {
@@ -182,7 +192,9 @@ export default function Tree({ members, relationships }: TreeProps) {
                         onConnect={onConnect}
                         onNodeClick={onNodeClick}
                         onEdgeClick={onEdgeClick}
+                        onInit={setRfInstance}
                         nodeTypes={nodeTypes}
+                        edgeTypes={edgeTypes}
                         colorMode={appearance}
                         fitView
                         fitViewOptions={{ padding: 0.2 }}
@@ -210,9 +222,14 @@ export default function Tree({ members, relationships }: TreeProps) {
                             <span className="font-medium">{members.length}</span>
                             <span className="text-muted-foreground">members</span>
                         </div>
-                        <Button className="pointer-events-auto shadow-sm" onClick={openCreate}>
-                            <Plus className="mr-2 size-4" /> Add member
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" className="pointer-events-auto bg-card/90 shadow-sm backdrop-blur" onClick={autoLayout}>
+                                <LayoutGrid className="mr-2 size-4" /> Auto layout
+                            </Button>
+                            <Button className="pointer-events-auto shadow-sm" onClick={openCreate}>
+                                <Plus className="mr-2 size-4" /> Add member
+                            </Button>
+                        </div>
                     </div>
                 ) : null}
 

@@ -12,6 +12,10 @@ export interface ParentEdge {
     id: number;
     parentId: number;
     childId: number;
+    /** Shared x-coordinate of the parent's household (couple's midpoint, or the
+     *  parent's own center if single) — lets both parents' lines merge into one
+     *  trunk before branching down to children. */
+    trunkX: number;
 }
 
 export interface SpouseEdge {
@@ -107,10 +111,20 @@ export function computeFamilyLayout(members: Member[], relationships: Relationsh
         });
     });
 
+    // Shared center-x per household, so a couple's two parent-edges start from
+    // the exact same point and visually merge into a single trunk line.
+    const householdCenterX: Record<number, number> = {};
+    households.forEach((h) => {
+        const centers = h.map((id) => (positions[id]?.x ?? 0) + NODE_WIDTH / 2);
+        const center = (Math.min(...centers) + Math.max(...centers)) / 2;
+        h.forEach((id) => (householdCenterX[id] = center));
+    });
+
     const parentEdges: ParentEdge[] = parentRels.map((r) => ({
         id: r.id,
         parentId: r.from_member_id,
         childId: r.to_member_id,
+        trunkX: householdCenterX[r.from_member_id] ?? (positions[r.from_member_id]?.x ?? 0) + NODE_WIDTH / 2,
     }));
 
     // Order each spouse edge left-to-right by resolved x position.
