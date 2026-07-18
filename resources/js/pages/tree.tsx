@@ -70,7 +70,7 @@ export default function Tree({ members, relationships }: TreeProps) {
                 id: String(m.id),
                 type: 'member',
                 position: layout.positions[m.id] ?? { x: 0, y: 0 },
-                data: { member: m, isSelected: selectedId === m.id },
+                data: { member: m, isSelected: selectedId === m.id, onAddChild: (member: Member) => openAddRelative(member, 'child') },
             })),
         );
 
@@ -147,7 +147,7 @@ export default function Tree({ members, relationships }: TreeProps) {
     const onEdgeClick: EdgeMouseHandler = useCallback((_, edge) => {
         const relationshipId = (edge.data as { relationshipId?: number } | undefined)?.relationshipId;
         if (!relationshipId) return;
-        if (window.confirm('Remove this relationship?')) {
+        if (window.confirm("Ushbu bog'lanishni o'chirasizmi?")) {
             router.delete(`/relationships/${relationshipId}`, { preserveScroll: true });
         }
     }, []);
@@ -167,7 +167,7 @@ export default function Tree({ members, relationships }: TreeProps) {
 
     return (
         <SiteLayout>
-            <Head title="Family Tree" />
+            <Head title="Oila daraxti" />
 
             <div className="relative h-full w-full">
                 {members.length === 0 ? (
@@ -176,11 +176,11 @@ export default function Tree({ members, relationships }: TreeProps) {
                             <Users className="text-muted-foreground size-7" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold">Start your family tree</h2>
-                            <p className="text-muted-foreground text-sm">Add the first member, then connect parents, children and spouses.</p>
+                            <h2 className="text-lg font-semibold">Oila daraxtingizni boshlang</h2>
+                            <p className="text-muted-foreground text-sm">Birinchi a'zoni qo'shing, so'ngra ota-onalar, farzandlar va turmush o'rtoqlarini bog'lang.</p>
                         </div>
                         <Button onClick={openCreate}>
-                            <Plus className="mr-2 size-4" /> Add member
+                            <Plus className="mr-2 size-4" /> A'zo qo'shish
                         </Button>
                     </div>
                 ) : (
@@ -220,14 +220,14 @@ export default function Tree({ members, relationships }: TreeProps) {
                         <div className="bg-card/90 pointer-events-auto flex items-center gap-2 rounded-lg border px-3 py-2 text-sm shadow-sm backdrop-blur">
                             <Users className="text-muted-foreground size-4" />
                             <span className="font-medium">{members.length}</span>
-                            <span className="text-muted-foreground">members</span>
+                            <span className="text-muted-foreground">a'zo</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button variant="outline" className="pointer-events-auto bg-card/90 shadow-sm backdrop-blur" onClick={autoLayout}>
-                                <LayoutGrid className="mr-2 size-4" /> Auto layout
+                                <LayoutGrid className="mr-2 size-4" /> Avto joylashuv
                             </Button>
                             <Button className="pointer-events-auto shadow-sm" onClick={openCreate}>
-                                <Plus className="mr-2 size-4" /> Add member
+                                <Plus className="mr-2 size-4" /> A'zo qo'shish
                             </Button>
                         </div>
                     </div>
@@ -237,7 +237,7 @@ export default function Tree({ members, relationships }: TreeProps) {
                 {members.length > 0 ? (
                     <div className="text-muted-foreground pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border bg-card/90 px-3 py-1.5 text-xs shadow-sm backdrop-blur">
                         <Info className="size-3.5" />
-                        Click a card for details · drag between cards to connect · click a line to remove it
+                        Batafsil ma'lumot uchun kartani bosing · ulash uchun kartalar orasida torting · o'chirish uchun chiziqni bosing
                     </div>
                 ) : null}
 

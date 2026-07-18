@@ -42,8 +42,8 @@ type FormShape = {
 };
 
 const GENDERS: { value: string; label: string }[] = [
-    { value: 'male', label: 'Male' },
-    { value: 'female', label: 'Female' },
+    { value: 'male', label: 'Erkak' },
+    { value: 'female', label: 'Ayol' },
 ];
 
 function GenderChips({ value, onChange }: { value: string; onChange: (value: string) => void }) {
@@ -104,7 +104,7 @@ function PhotoField({
                     'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                     preview ? 'border-border' : 'border-input border-dashed hover:bg-secondary',
                 )}
-                aria-label="Upload photo"
+                aria-label="Rasm yuklash"
             >
                 {preview ? (
                     <img src={preview} alt="Preview" className="h-full w-full object-cover" />
@@ -119,15 +119,15 @@ function PhotoField({
                 <div className="flex gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
                         <ImagePlus className="mr-1.5 size-3.5" />
-                        {preview ? 'Change' : 'Upload photo'}
+                        {preview ? "O'zgartirish" : 'Rasm yuklash'}
                     </Button>
                     {preview ? (
                         <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={onRemove}>
-                            <X className="mr-1 size-3.5" /> Remove
+                            <X className="mr-1 size-3.5" /> O'chirish
                         </Button>
                     ) : null}
                 </div>
-                <p className="text-muted-foreground text-xs">JPG, PNG, WEBP or GIF · up to 5 MB.</p>
+                <p className="text-muted-foreground text-xs">JPG, PNG, WEBP yoki GIF · 5 MB gacha.</p>
                 <InputError message={error} />
             </div>
 
@@ -196,73 +196,73 @@ function MemberForm({ mode, member, relateTo, relateAs, onDone }: Omit<Props, 'o
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <Label htmlFor="name">First name</Label>
-                    <Input id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} autoFocus placeholder="Jane" />
+                    <Label htmlFor="name">Ism</Label>
+                    <Input id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} autoFocus placeholder="Dilnoza" />
                     <InputError message={errors.name} />
                 </div>
                 <div className="space-y-1.5">
-                    <Label htmlFor="surname">Surname</Label>
-                    <Input id="surname" value={data.surname} onChange={(e) => setData('surname', e.target.value)} placeholder="Whitfield" />
+                    <Label htmlFor="surname">Familiya</Label>
+                    <Input id="surname" value={data.surname} onChange={(e) => setData('surname', e.target.value)} placeholder="Karimova" />
                     <InputError message={errors.surname} />
                 </div>
             </div>
 
             <div className="space-y-1.5">
-                <Label>Gender</Label>
+                <Label>Jinsi</Label>
                 <GenderChips value={data.gender} onChange={(v) => setData('gender', v)} />
                 <InputError message={errors.gender} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <Label htmlFor="profession">Profession</Label>
-                    <Input id="profession" value={data.profession} onChange={(e) => setData('profession', e.target.value)} placeholder="Architect" />
+                    <Label htmlFor="profession">Kasbi</Label>
+                    <Input id="profession" value={data.profession} onChange={(e) => setData('profession', e.target.value)} placeholder="Arxitektor" />
                     <InputError message={errors.profession} />
                 </div>
                 <div className="space-y-1.5">
-                    <Label htmlFor="date_of_birth">Date of birth</Label>
+                    <Label htmlFor="date_of_birth">Tug'ilgan sana</Label>
                     <Input id="date_of_birth" type="date" value={data.date_of_birth} onChange={(e) => setData('date_of_birth', e.target.value)} />
                     <InputError message={errors.date_of_birth} />
                 </div>
             </div>
 
             <div className="space-y-1.5">
-                <Label htmlFor="birth_place">Birth place</Label>
-                <Input id="birth_place" value={data.birth_place} onChange={(e) => setData('birth_place', e.target.value)} placeholder="York, England" />
+                <Label htmlFor="birth_place">Tug'ilgan joyi</Label>
+                <Input id="birth_place" value={data.birth_place} onChange={(e) => setData('birth_place', e.target.value)} placeholder="Toshkent, O'zbekiston" />
                 <InputError message={errors.birth_place} />
             </div>
 
             <label className="hover:bg-secondary/50 flex cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2.5">
                 <Checkbox checked={deceased} onCheckedChange={(c) => setDeceased(Boolean(c))} />
-                <span className="text-sm font-medium">Deceased</span>
-                <span className="text-muted-foreground text-xs">Add date &amp; place of death</span>
+                <span className="text-sm font-medium">Vafot etgan</span>
+                <span className="text-muted-foreground text-xs">Vafot sanasi va joyini qo'shish</span>
             </label>
 
             {deceased ? (
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <Label htmlFor="date_of_death">Date of death</Label>
+                        <Label htmlFor="date_of_death">Vafot sanasi</Label>
                         <Input id="date_of_death" type="date" value={data.date_of_death} onChange={(e) => setData('date_of_death', e.target.value)} />
                         <InputError message={errors.date_of_death} />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="death_place">Death place</Label>
-                        <Input id="death_place" value={data.death_place} onChange={(e) => setData('death_place', e.target.value)} placeholder="York, England" />
+                        <Label htmlFor="death_place">Vafot joyi</Label>
+                        <Input id="death_place" value={data.death_place} onChange={(e) => setData('death_place', e.target.value)} placeholder="Toshkent, O'zbekiston" />
                         <InputError message={errors.death_place} />
                     </div>
                 </div>
             ) : null}
 
             <div className="space-y-1.5">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="A short biography…" />
+                <Label htmlFor="description">Tavsif</Label>
+                <Textarea id="description" value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="Qisqacha tarjimai hol…" />
                 <InputError message={errors.description} />
             </div>
 
             <DialogFooter>
                 <Button type="submit" disabled={processing}>
                     {processing ? <LoaderCircle className="mr-2 size-4 animate-spin" /> : null}
-                    {mode === 'edit' ? 'Save changes' : 'Add member'}
+                    {mode === 'edit' ? "O'zgarishlarni saqlash" : "A'zo qo'shish"}
                 </Button>
             </DialogFooter>
         </form>
@@ -270,18 +270,18 @@ function MemberForm({ mode, member, relateTo, relateAs, onDone }: Omit<Props, 'o
 }
 
 const relationLabel: Record<RelateAs, string> = {
-    parent: 'parent',
-    child: 'child',
-    spouse: 'spouse',
+    parent: 'ota-ona',
+    child: 'farzand',
+    spouse: "turmush o'rtoq",
 };
 
 export function MemberFormDialog({ open, onOpenChange, mode, member, relateTo, relateAs, relateToName }: Props) {
     const title =
         mode === 'edit'
-            ? 'Edit member'
+            ? "A'zoni tahrirlash"
             : relateAs && relateToName
-              ? `Add ${relationLabel[relateAs]} of ${relateToName}`
-              : 'Add family member';
+              ? `${relateToName} uchun ${relationLabel[relateAs]} qo'shish`
+              : "Oila a'zosini qo'shish";
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -289,7 +289,7 @@ export function MemberFormDialog({ open, onOpenChange, mode, member, relateTo, r
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>
-                        {mode === 'edit' ? 'Update the details for this family member.' : 'Only a first name is required — everything else is optional.'}
+                        {mode === 'edit' ? "Ushbu oila a'zosining ma'lumotlarini yangilang." : "Faqat ism talab qilinadi — qolganlari ixtiyoriy."}
                     </DialogDescription>
                 </DialogHeader>
                 {open ? (

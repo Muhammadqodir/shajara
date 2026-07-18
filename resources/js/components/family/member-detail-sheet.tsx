@@ -58,7 +58,7 @@ function RelationList({
                             <button
                                 type="button"
                                 onClick={() => onRemove(relationshipId)}
-                                title="Remove relationship"
+                                title="Bog'lanishni o'chirish"
                                 className="text-muted-foreground hover:text-destructive opacity-0 transition-opacity group-hover:opacity-100"
                             >
                                 <X className="size-4" />
@@ -101,7 +101,7 @@ export function MemberDetailSheet({ member, open, onOpenChange, members, relatio
     const removeRelationship = (id: number) => router.delete(`/relationships/${id}`, { preserveScroll: true });
 
     const deleteMember = () => {
-        if (!window.confirm(`Delete ${fullName(member)}? This also removes their relationships.`)) return;
+        if (!window.confirm(`${fullName(member)}ni o'chirasizmi? Bu uning barcha bog'lanishlarini ham o'chiradi.`)) return;
         router.delete(`/members/${member.id}`, {
             preserveScroll: true,
             onSuccess: () => onOpenChange(false),
@@ -120,8 +120,8 @@ export function MemberDetailSheet({ member, open, onOpenChange, members, relatio
                         <div className="min-w-0 flex-1 pt-1">
                             <SheetTitle className="truncate text-xl">{fullName(member)}</SheetTitle>
                             <SheetDescription className="mt-0.5">
-                                {span ?? 'Dates unknown'}
-                                {deceased ? ' · Deceased' : ''}
+                                {span ?? "Sanalar noma'lum"}
+                                {deceased ? ' · Vafot etgan' : ''}
                             </SheetDescription>
                             <div className="mt-2 flex flex-wrap gap-1.5">
                                 {member.profession ? (
@@ -131,8 +131,8 @@ export function MemberDetailSheet({ member, open, onOpenChange, members, relatio
                                     </Badge>
                                 ) : null}
                                 {member.gender ? (
-                                    <Badge variant="outline" className="font-normal capitalize">
-                                        {member.gender}
+                                    <Badge variant="outline" className="font-normal">
+                                        {member.gender === 'male' ? 'Erkak' : 'Ayol'}
                                     </Badge>
                                 ) : null}
                             </div>
@@ -141,10 +141,10 @@ export function MemberDetailSheet({ member, open, onOpenChange, members, relatio
 
                     <div className="mt-4 flex flex-wrap gap-2">
                         <Button size="sm" variant="outline" onClick={() => onEdit(member)}>
-                            <Pencil className="mr-1.5 size-3.5" /> Edit
+                            <Pencil className="mr-1.5 size-3.5" /> Tahrirlash
                         </Button>
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={deleteMember}>
-                            <Trash2 className="mr-1.5 size-3.5" /> Delete
+                            <Trash2 className="mr-1.5 size-3.5" /> O'chirish
                         </Button>
                     </div>
                 </SheetHeader>
@@ -158,12 +158,12 @@ export function MemberDetailSheet({ member, open, onOpenChange, members, relatio
                         <div className="text-muted-foreground space-y-1.5 text-sm">
                             {member.birth_place ? (
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="size-3.5 shrink-0" /> Born in {member.birth_place}
+                                    <MapPin className="size-3.5 shrink-0" /> {member.birth_place}da tug'ilgan
                                 </div>
                             ) : null}
                             {member.death_place ? (
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="size-3.5 shrink-0" /> Died in {member.death_place}
+                                    <MapPin className="size-3.5 shrink-0" /> {member.death_place}da vafot etgan
                                 </div>
                             ) : null}
                         </div>
@@ -171,22 +171,22 @@ export function MemberDetailSheet({ member, open, onOpenChange, members, relatio
 
                     <Separator />
 
-                    <RelationList label="Parents" entries={parents} emptyHint="No parents linked." onSelect={onSelectMember} onRemove={removeRelationship} />
-                    <RelationList label="Spouses" entries={spouses} emptyHint="No spouse linked." onSelect={onSelectMember} onRemove={removeRelationship} />
-                    <RelationList label="Children" entries={children} emptyHint="No children linked." onSelect={onSelectMember} onRemove={removeRelationship} />
+                    <RelationList label="Ota-onalar" entries={parents} emptyHint="Ota-onalar bog'lanmagan." onSelect={onSelectMember} onRemove={removeRelationship} />
+                    <RelationList label="Turmush o'rtoqlari" entries={spouses} emptyHint="Turmush o'rtog'i bog'lanmagan." onSelect={onSelectMember} onRemove={removeRelationship} />
+                    <RelationList label="Farzandlar" entries={children} emptyHint="Farzandlar bog'lanmagan." onSelect={onSelectMember} onRemove={removeRelationship} />
                 </div>
 
                 <div className="bg-background/80 sticky bottom-0 mt-auto border-t p-4 backdrop-blur">
-                    <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">Add relative</p>
+                    <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">Qarindosh qo'shish</p>
                     <div className="grid grid-cols-3 gap-2">
                         <Button size="sm" variant="outline" onClick={() => onAddRelative(member, 'parent')}>
-                            <Plus className="mr-1 size-3.5" /> Parent
+                            <Plus className="mr-1 size-3.5" /> Ota-ona
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => onAddRelative(member, 'spouse')}>
-                            <UserPlus className="mr-1 size-3.5" /> Spouse
+                            <UserPlus className="mr-1 size-3.5" /> Turmush o'rtoq
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => onAddRelative(member, 'child')}>
-                            <Plus className="mr-1 size-3.5" /> Child
+                            <Plus className="mr-1 size-3.5" /> Farzand
                         </Button>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Plus } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { fullName, initials, isDeceased, lifespan } from '@/lib/family-graph';
@@ -8,6 +9,7 @@ import type { Member } from '@/types/family';
 export interface MemberNodeData {
     member: Member;
     isSelected?: boolean;
+    onAddChild?: (member: Member) => void;
     [key: string]: unknown;
 }
 
@@ -15,7 +17,7 @@ const handleClass =
     '!h-2.5 !w-2.5 !rounded-full !border !border-background !bg-muted-foreground/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100';
 
 export function MemberNode({ data }: NodeProps) {
-    const { member, isSelected } = data as MemberNodeData;
+    const { member, isSelected, onAddChild } = data as MemberNodeData;
     const span = lifespan(member);
     const deceased = isDeceased(member);
 
@@ -42,12 +44,27 @@ export function MemberNode({ data }: NodeProps) {
                 <div className="mt-1 flex items-center gap-1.5">
                     {span ? <span className="text-muted-foreground text-[11px]">{span}</span> : null}
                     {deceased ? (
-                        <span title="Deceased" className="text-muted-foreground text-[11px] leading-none">
+                        <span title="Vafot etgan" className="text-muted-foreground text-[11px] leading-none">
                             †
                         </span>
                     ) : null}
                 </div>
             </div>
+
+            {onAddChild ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onAddChild(member);
+                    }}
+                    title="Farzand qo'shish"
+                    className="bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100"
+                >
+                    <Plus className="size-3" />
+                    Farzand
+                </button>
+            ) : null}
         </div>
     );
 }

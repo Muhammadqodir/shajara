@@ -5,8 +5,8 @@ import { GitFork, Images } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 
 const nav = [
-    { title: 'Family Tree', href: '/', icon: GitFork },
-    { title: 'Gallery', href: '/gallery', icon: Images },
+    { title: 'Oila daraxti', href: '/', icon: GitFork },
+    { title: 'Galereya', href: '/gallery', icon: Images },
 ];
 
 export default function SiteLayout({ children }: PropsWithChildren) {

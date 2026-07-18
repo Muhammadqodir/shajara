@@ -167,8 +167,8 @@ export function lifespan(member: Pick<Member, 'date_of_birth' | 'date_of_death'>
     const birth = year(member.date_of_birth);
     const death = year(member.date_of_death);
     if (birth && death) return `${birth} – ${death}`;
-    if (birth) return `b. ${birth}`;
-    if (death) return `d. ${death}`;
+    if (birth) return `tug. ${birth}`;
+    if (death) return `vaf. ${death}`;
     return null;
 }
 

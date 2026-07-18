@@ -28,7 +28,7 @@ function GalleryImage({ src, alt }: { src: string; alt: string }) {
 
 function GalleryCard({ item, onEdit }: { item: GalleryItem; onEdit: (item: GalleryItem) => void }) {
     const remove = () => {
-        if (window.confirm('Delete this photo?')) {
+        if (window.confirm("Ushbu suratni o'chirasizmi?")) {
             router.delete(`/gallery/${item.id}`, { preserveScroll: true });
         }
     };
@@ -36,7 +36,7 @@ function GalleryCard({ item, onEdit }: { item: GalleryItem; onEdit: (item: Galle
     return (
         <div className="group bg-card overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md">
             <div className="relative">
-                <GalleryImage src={item.image_url} alt={item.description ?? 'Family photo'} />
+                <GalleryImage src={item.image_url} alt={item.description ?? 'Oilaviy surat'} />
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <Button size="icon" variant="secondary" className="size-8 shadow-sm" onClick={() => onEdit(item)}>
                         <Pencil className="size-3.5" />
@@ -77,17 +77,17 @@ export default function Gallery({ galleries, members }: GalleryProps) {
 
     return (
         <SiteLayout>
-            <Head title="Gallery" />
+            <Head title="Galereya" />
 
             <div className="h-full overflow-y-auto">
                 <div className="mx-auto w-full max-w-6xl px-6 py-8">
                     <div className="mb-6 flex items-end justify-between">
                         <div>
-                            <h1 className="text-2xl font-semibold tracking-tight">Gallery</h1>
-                            <p className="text-muted-foreground text-sm">Shared family photos, tagged with the people in them.</p>
+                            <h1 className="text-2xl font-semibold tracking-tight">Galereya</h1>
+                            <p className="text-muted-foreground text-sm">Oilaviy suratlar, ularda ko'rsatilgan kishilar belgilangan.</p>
                         </div>
                         <Button onClick={() => setDialog({ open: true, mode: 'create', item: null })}>
-                            <Plus className="mr-2 size-4" /> Add photo
+                            <Plus className="mr-2 size-4" /> Surat qo'shish
                         </Button>
                     </div>
 
@@ -97,11 +97,11 @@ export default function Gallery({ galleries, members }: GalleryProps) {
                                 <Images className="text-muted-foreground size-7" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-semibold">No photos yet</h2>
-                                <p className="text-muted-foreground text-sm">Add your first family photo to get started.</p>
+                                <h2 className="text-lg font-semibold">Hali suratlar yo'q</h2>
+                                <p className="text-muted-foreground text-sm">Boshlash uchun birinchi oilaviy suratingizni qo'shing.</p>
                             </div>
                             <Button variant="outline" onClick={() => setDialog({ open: true, mode: 'create', item: null })}>
-                                <Plus className="mr-2 size-4" /> Add photo
+                                <Plus className="mr-2 size-4" /> Surat qo'shish
                             </Button>
                         </div>
                     ) : (

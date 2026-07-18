@@ -38,14 +38,14 @@ class RelationshipController extends Controller
 
             if ($alreadyLinked) {
                 return back()->withErrors([
-                    'relationship' => 'These members are already linked as spouses.',
+                    'relationship' => "Bu a'zolar allaqachon turmush o'rtoqlari sifatida bog'langan.",
                 ]);
             }
         } else {
             // Prevent creating a loop: the child must not already be an ancestor of the parent.
             if ($this->isAncestor($data['to_member_id'], $data['from_member_id'])) {
                 return back()->withErrors([
-                    'relationship' => 'That connection would create a loop in the tree.',
+                    'relationship' => "Bu bog'lanish daraxtda halqa hosil qiladi.",
                 ]);
             }
         }
