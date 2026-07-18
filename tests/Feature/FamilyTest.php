@@ -6,6 +6,8 @@ use App\Models\Gallery;
 use App\Models\Member;
 use App\Models\Relationship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -43,14 +45,82 @@ class FamilyTest extends TestCase
 
     public function test_it_validates_member_input(): void
     {
-        $this->post('/members', ['name' => 'X', 'photo_url' => 'not-a-url'])
-            ->assertSessionHasErrors('photo_url');
-
         $this->post('/members', ['name' => 'X', 'date_of_birth' => '2000-01-01', 'date_of_death' => '1990-01-01'])
             ->assertSessionHasErrors('date_of_death');
 
         $this->post('/members', ['surname' => 'NoFirstName'])
             ->assertSessionHasErrors('name');
+
+        $this->post('/members', ['name' => 'X', 'gender' => 'other'])
+            ->assertSessionHasErrors('gender');
+    }
+
+    public function test_it_stores_an_uploaded_photo(): void
+    {
+        Storage::fake('public');
+
+        $this->post('/members', [
+            'name' => 'Photo',
+            'photo' => UploadedFile::fake()->image('avatar.jpg', 400, 400),
+        ])->assertRedirect();
+
+        $member = Member::where('name', 'Photo')->firstOrFail();
+
+        $this->assertNotNull($member->photo_url);
+        $this->assertStringStartsWith('/storage/photos/', $member->photo_url);
+        Storage::disk('public')->assertExists(str_replace('/storage/', '', $member->photo_url));
+    }
+
+    public function test_it_rejects_a_non_image_photo(): void
+    {
+        $this->post('/members', [
+            'name' => 'Bad',
+            'photo' => UploadedFile::fake()->create('resume.pdf', 100, 'application/pdf'),
+        ])->assertSessionHasErrors('photo');
+    }
+
+    public function test_it_replaces_and_removes_a_photo_on_update(): void
+    {
+        Storage::fake('public');
+
+        $member = Member::create(['name' => 'Has Photo']);
+
+        // Upload a photo.
+        $this->put("/members/{$member->id}", [
+            '_method' => 'put',
+            'name' => 'Has Photo',
+            'photo' => UploadedFile::fake()->image('first.jpg'),
+        ])->assertRedirect();
+
+        $first = $member->fresh()->photo_url;
+        $this->assertStringStartsWith('/storage/photos/', $first);
+
+        // Remove it.
+        $this->put("/members/{$member->id}", [
+            'name' => 'Has Photo',
+            'remove_photo' => true,
+        ])->assertRedirect();
+
+        $this->assertNull($member->fresh()->photo_url);
+        Storage::disk('public')->assertMissing(str_replace('/storage/', '', $first));
+    }
+
+    public function test_it_updates_via_post_method_spoofing_with_a_photo(): void
+    {
+        Storage::fake('public');
+
+        $member = Member::create(['name' => 'Spoof']);
+
+        // This mirrors how the front-end submits an edit with a file upload.
+        $this->post("/members/{$member->id}", [
+            '_method' => 'PUT',
+            'name' => 'Spoofed',
+            'photo' => UploadedFile::fake()->image('x.jpg'),
+        ])->assertRedirect();
+
+        $fresh = $member->fresh();
+        $this->assertSame('Spoofed', $fresh->name);
+        $this->assertStringStartsWith('/storage/photos/', $fresh->photo_url);
     }
 
     public function test_it_creates_a_member_and_links_it_as_a_child(): void

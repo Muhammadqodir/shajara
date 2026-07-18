@@ -6,7 +6,9 @@ use App\Models\Member;
 use App\Models\Relationship;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MemberController extends Controller
 {
@@ -21,12 +23,14 @@ class MemberController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validateMember($request);
+        $data = $this->validatedData($request);
 
         $link = $request->validate([
             'relate_to' => ['nullable', 'exists:members,id'],
             'relate_as' => ['nullable', 'in:parent,child,spouse'],
         ]);
+
+        $data['photo_url'] = $this->resolvePhoto($request, null);
 
         DB::transaction(function () use ($data, $link) {
             $member = Member::create($data);
@@ -44,7 +48,10 @@ class MemberController extends Controller
      */
     public function update(Request $request, Member $member): RedirectResponse
     {
-        $member->update($this->validateMember($request));
+        $data = $this->validatedData($request);
+        $data['photo_url'] = $this->resolvePhoto($request, $member);
+
+        $member->update($data);
 
         return back();
     }
@@ -54,28 +61,67 @@ class MemberController extends Controller
      */
     public function destroy(Member $member): RedirectResponse
     {
+        $this->deleteLocalPhoto($member->photo_url);
         $member->delete();
 
         return back();
     }
 
     /**
-     * Shared validation rules for create & update.
+     * Validate & return the member's own column values (photo handled separately).
      */
-    protected function validateMember(Request $request): array
+    protected function validatedData(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'surname' => ['nullable', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date'],
             'date_of_death' => ['nullable', 'date', 'after_or_equal:date_of_birth'],
             'profession' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'gender' => ['nullable', 'in:male,female,other'],
+            'gender' => ['nullable', 'in:male,female'],
             'birth_place' => ['nullable', 'string', 'max:255'],
             'death_place' => ['nullable', 'string', 'max:255'],
-            'photo_url' => ['nullable', 'url', 'max:2048'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:5120'],
         ]);
+
+        return Arr::only($validated, [
+            'name', 'surname', 'date_of_birth', 'date_of_death', 'profession',
+            'description', 'gender', 'birth_place', 'death_place',
+        ]);
+    }
+
+    /**
+     * Work out the photo_url: a new upload wins, otherwise honour removal or keep existing.
+     */
+    protected function resolvePhoto(Request $request, ?Member $member): ?string
+    {
+        if ($request->hasFile('photo')) {
+            $this->deleteLocalPhoto($member?->photo_url);
+            $path = $request->file('photo')->store('photos', 'public');
+
+            return '/storage/'.$path;
+        }
+
+        if ($request->boolean('remove_photo')) {
+            $this->deleteLocalPhoto($member?->photo_url);
+
+            return null;
+        }
+
+        return $member?->photo_url;
+    }
+
+    /**
+     * Delete an uploaded photo from local storage (ignores external URLs).
+     */
+    protected function deleteLocalPhoto(?string $url): void
+    {
+        if (! $url || ! str_starts_with($url, '/storage/')) {
+            return;
+        }
+
+        Storage::disk('public')->delete(substr($url, strlen('/storage/')));
     }
 
     /**
