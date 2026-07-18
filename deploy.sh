@@ -47,10 +47,25 @@ cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Pre-flight checks
 # ----------------------------------------------------------------------------
 log "Pre-flight checks"
-[ -f artisan ]   || die "artisan not found — run this from the Laravel project root."
-[ -f .env ]      || die ".env not found — create it on the server before deploying."
+[ -f artisan ] || die "artisan not found — run this from the Laravel project root."
 command -v "$PHP_BIN" >/dev/null      || die "PHP binary '$PHP_BIN' not found."
 command -v "$COMPOSER_BIN" >/dev/null || die "Composer '$COMPOSER_BIN' not found."
+
+# First-run bootstrap: a fresh git clone has no .env (it is gitignored).
+if [ ! -f .env ]; then
+    log "No .env found — creating one from .env.example"
+    cp .env.example .env
+    "$PHP_BIN" artisan key:generate --force >/dev/null 2>&1 || true
+    die "Created .env. Edit it now, then re-run ./deploy.sh:
+    - APP_ENV=production, APP_DEBUG=false, APP_URL=https://your-domain
+    - DB_DATABASE / DB_USERNAME / DB_PASSWORD (the database must already exist)"
+fi
+
+# Make sure an application key exists.
+if ! grep -q '^APP_KEY=base64:' .env; then
+    log "Generating application key"
+    "$PHP_BIN" artisan key:generate --force
+fi
 ok "Environment looks good"
 
 # ----------------------------------------------------------------------------
@@ -117,6 +132,18 @@ ok "Caches cleared"
 # Database migrations
 # ----------------------------------------------------------------------------
 if [ "$SKIP_MIGRATIONS" != "1" ]; then
+    log "Checking database connection"
+    if ! "$PHP_BIN" artisan db:show >/dev/null 2>&1; then
+        DB_NAME="$(grep -E '^DB_DATABASE=' .env | head -1 | cut -d= -f2-)"
+        DB_NAME="${DB_NAME//\"/}"
+        DB_NAME="${DB_NAME//\'/}"
+        DB_NAME="${DB_NAME:-shajara}"
+        die "Cannot connect to the database. Check the DB_* values in .env and make sure the database exists, e.g.:
+    mysql -u root -p -e \"CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\"
+    (also confirm PHP has pdo_mysql: php -m | grep pdo_mysql)"
+    fi
+    ok "Database reachable"
+
     log "Running migrations"
     "$PHP_BIN" artisan migrate --force
     ok "Migrations complete"
