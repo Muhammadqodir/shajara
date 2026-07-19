@@ -23,6 +23,7 @@ class TreeController extends Controller
             'from_member_id',
             'to_member_id',
             'type',
+            'married_at',
         ]);
 
         return Inertia::render('tree', [

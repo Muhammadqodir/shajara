@@ -20,6 +20,9 @@ class MemberController extends Controller
      *   - "parent": the NEW member is a parent of relate_to
      *   - "child":  the NEW member is a child of relate_to
      *   - "spouse": the NEW member is a spouse of relate_to
+     *
+     * When adding a child from a couple's shared "marriage" card, `relate_to_spouse`
+     * carries the second parent's id so both parent links are created at once.
      */
     public function store(Request $request): RedirectResponse
     {
@@ -28,6 +31,7 @@ class MemberController extends Controller
         $link = $request->validate([
             'relate_to' => ['nullable', 'exists:members,id'],
             'relate_as' => ['nullable', 'in:parent,child,spouse'],
+            'relate_to_spouse' => ['nullable', 'exists:members,id', 'different:relate_to'],
         ]);
 
         $data['photo_url'] = $this->resolvePhoto($request, null);
@@ -37,6 +41,10 @@ class MemberController extends Controller
 
             if (! empty($link['relate_to']) && ! empty($link['relate_as'])) {
                 $this->linkMember($member->id, (int) $link['relate_to'], $link['relate_as']);
+
+                if ($link['relate_as'] === 'child' && ! empty($link['relate_to_spouse'])) {
+                    $this->linkMember($member->id, (int) $link['relate_to_spouse'], 'child');
+                }
             }
         });
 

@@ -23,6 +23,8 @@ interface Props {
     relateTo?: number | null;
     relateAs?: RelateAs | null;
     relateToName?: string | null;
+    /** When adding a child from a couple's shared marriage card, the second parent's id. */
+    relateToSpouse?: number | null;
 }
 
 type FormShape = {
@@ -39,6 +41,7 @@ type FormShape = {
     remove_photo: boolean;
     relate_to: number | '';
     relate_as: string;
+    relate_to_spouse: number | '';
 };
 
 const GENDERS: { value: string; label: string }[] = [
@@ -136,7 +139,14 @@ function PhotoField({
     );
 }
 
-function MemberForm({ mode, member, relateTo, relateAs, onDone }: Omit<Props, 'open' | 'onOpenChange' | 'relateToName'> & { onDone: () => void }) {
+function MemberForm({
+    mode,
+    member,
+    relateTo,
+    relateAs,
+    relateToSpouse,
+    onDone,
+}: Omit<Props, 'open' | 'onOpenChange' | 'relateToName'> & { onDone: () => void }) {
     const { data, setData, transform, post, processing, errors } = useForm<FormShape>({
         name: member?.name ?? '',
         surname: member?.surname ?? '',
@@ -151,6 +161,7 @@ function MemberForm({ mode, member, relateTo, relateAs, onDone }: Omit<Props, 'o
         remove_photo: false,
         relate_to: relateTo ?? '',
         relate_as: relateAs ?? '',
+        relate_to_spouse: relateToSpouse ?? '',
     });
 
     const [deceased, setDeceased] = useState<boolean>(Boolean(member?.date_of_death || member?.death_place));
@@ -275,7 +286,7 @@ const relationLabel: Record<RelateAs, string> = {
     spouse: "turmush o'rtoq",
 };
 
-export function MemberFormDialog({ open, onOpenChange, mode, member, relateTo, relateAs, relateToName }: Props) {
+export function MemberFormDialog({ open, onOpenChange, mode, member, relateTo, relateAs, relateToName, relateToSpouse }: Props) {
     const title =
         mode === 'edit'
             ? "A'zoni tahrirlash"
@@ -294,11 +305,12 @@ export function MemberFormDialog({ open, onOpenChange, mode, member, relateTo, r
                 </DialogHeader>
                 {open ? (
                     <MemberForm
-                        key={`${mode}-${member?.id ?? 'new'}-${relateTo ?? ''}-${relateAs ?? ''}`}
+                        key={`${mode}-${member?.id ?? 'new'}-${relateTo ?? ''}-${relateAs ?? ''}-${relateToSpouse ?? ''}`}
                         mode={mode}
                         member={member}
                         relateTo={relateTo}
                         relateAs={relateAs}
+                        relateToSpouse={relateToSpouse}
                         onDone={() => onOpenChange(false)}
                     />
                 ) : null}

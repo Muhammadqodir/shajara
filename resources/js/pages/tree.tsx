@@ -19,6 +19,8 @@ import { Info, LayoutGrid, Plus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { FamilyEdge } from '@/components/family/family-edge';
+import { MarriageDateDialog } from '@/components/family/marriage-date-dialog';
+import { MarriageEdge } from '@/components/family/marriage-edge';
 import { MemberDetailSheet } from '@/components/family/member-detail-sheet';
 import { MemberFormDialog, type RelateAs } from '@/components/family/member-form-dialog';
 import { MemberNode } from '@/components/family/member-node';
@@ -30,7 +32,7 @@ import SiteLayout from '@/layouts/site-layout';
 import type { Member, Relationship } from '@/types/family';
 
 const nodeTypes = { member: MemberNode };
-const edgeTypes = { family: FamilyEdge };
+const edgeTypes = { family: FamilyEdge, marriage: MarriageEdge };
 
 interface TreeProps {
     members: Member[];
@@ -44,9 +46,26 @@ interface FormState {
     relateTo: number | null;
     relateAs: RelateAs | null;
     relateToName: string | null;
+    relateToSpouse: number | null;
 }
 
-const closedForm: FormState = { open: false, mode: 'create', member: null, relateTo: null, relateAs: null, relateToName: null };
+const closedForm: FormState = {
+    open: false,
+    mode: 'create',
+    member: null,
+    relateTo: null,
+    relateAs: null,
+    relateToName: null,
+    relateToSpouse: null,
+};
+
+interface MarriageDialogState {
+    open: boolean;
+    relationshipId: number | null;
+    marriedAt: string | null;
+}
+
+const closedMarriageDialog: MarriageDialogState = { open: false, relationshipId: null, marriedAt: null };
 
 export default function Tree({ members, relationships }: TreeProps) {
     const { appearance } = useAppearance();
@@ -55,6 +74,7 @@ export default function Tree({ members, relationships }: TreeProps) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [form, setForm] = useState<FormState>(closedForm);
+    const [marriageDialog, setMarriageDialog] = useState<MarriageDialogState>(closedMarriageDialog);
     const [notice, setNotice] = useState<string | null>(null);
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -91,9 +111,16 @@ export default function Tree({ members, relationships }: TreeProps) {
             target: String(e.rightId),
             sourceHandle: 'right',
             targetHandle: 'left',
-            type: 'straight',
+            type: 'marriage',
             style: { stroke: 'var(--color-muted-foreground)', strokeWidth: 1.5, strokeDasharray: '4 4' },
-            data: { relationshipId: e.id },
+            data: {
+                relationshipId: e.id,
+                marriedAt: e.marriedAt,
+                leftId: e.leftId,
+                rightId: e.rightId,
+                onAddChild: (leftId: number, rightId: number) => openAddChildOfCouple(leftId, rightId),
+                onEditDate: (relationshipId: number, marriedAt: string | null) => setMarriageDialog({ open: true, relationshipId, marriedAt }),
+            },
         }));
 
         setEdges([...parentEdges, ...spouseEdges]);
@@ -162,7 +189,13 @@ export default function Tree({ members, relationships }: TreeProps) {
     const openEdit = (member: Member) => setForm({ ...closedForm, open: true, mode: 'edit', member });
     const openAddRelative = (member: Member, relateAs: RelateAs) => {
         setSheetOpen(false);
-        setForm({ open: true, mode: 'create', member: null, relateTo: member.id, relateAs, relateToName: fullName(member) });
+        setForm({ ...closedForm, open: true, mode: 'create', relateTo: member.id, relateAs, relateToName: fullName(member) });
+    };
+    const openAddChildOfCouple = (leftId: number, rightId: number) => {
+        const left = members.find((m) => m.id === leftId);
+        const right = members.find((m) => m.id === rightId);
+        const combinedName = [left, right].filter(Boolean).map((m) => fullName(m as Member)).join(' va ');
+        setForm({ ...closedForm, open: true, mode: 'create', relateTo: leftId, relateAs: 'child', relateToName: combinedName, relateToSpouse: rightId });
     };
 
     return (
@@ -270,6 +303,14 @@ export default function Tree({ members, relationships }: TreeProps) {
                 relateTo={form.relateTo}
                 relateAs={form.relateAs}
                 relateToName={form.relateToName}
+                relateToSpouse={form.relateToSpouse}
+            />
+
+            <MarriageDateDialog
+                open={marriageDialog.open}
+                onOpenChange={(open) => setMarriageDialog((d) => ({ ...d, open }))}
+                relationshipId={marriageDialog.relationshipId}
+                marriedAt={marriageDialog.marriedAt}
             />
         </SiteLayout>
     );

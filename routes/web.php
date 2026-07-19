@@ -16,6 +16,7 @@ Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('
 
 // Relationships (edges between members).
 Route::post('/relationships', [RelationshipController::class, 'store'])->name('relationships.store');
+Route::put('/relationships/{relationship}', [RelationshipController::class, 'update'])->name('relationships.update');
 Route::delete('/relationships/{relationship}', [RelationshipController::class, 'destroy'])->name('relationships.destroy');
 
 // Gallery.

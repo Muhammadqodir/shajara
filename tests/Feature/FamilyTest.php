@@ -186,6 +186,53 @@ class FamilyTest extends TestCase
         $this->assertDatabaseCount('relationships', 1);
     }
 
+    public function test_it_updates_the_marriage_date_on_a_spouse_relationship(): void
+    {
+        $a = Member::create(['name' => 'A']);
+        $b = Member::create(['name' => 'B']);
+        $relationship = Relationship::create(['from_member_id' => $a->id, 'to_member_id' => $b->id, 'type' => 'spouse']);
+
+        $this->put("/relationships/{$relationship->id}", [
+            'married_at' => '1975-06-12',
+        ])->assertRedirect();
+
+        $this->assertSame('1975-06-12', $relationship->fresh()->married_at->format('Y-m-d'));
+
+        // Clearing it back out should also work.
+        $this->put("/relationships/{$relationship->id}", [
+            'married_at' => '',
+        ])->assertRedirect();
+
+        $this->assertNull($relationship->fresh()->married_at);
+    }
+
+    public function test_it_creates_a_member_and_links_it_as_a_child_of_both_spouses(): void
+    {
+        $father = Member::create(['name' => 'Father']);
+        $mother = Member::create(['name' => 'Mother']);
+        Relationship::create(['from_member_id' => $father->id, 'to_member_id' => $mother->id, 'type' => 'spouse']);
+
+        $this->post('/members', [
+            'name' => 'Kid',
+            'relate_to' => $father->id,
+            'relate_as' => 'child',
+            'relate_to_spouse' => $mother->id,
+        ])->assertRedirect();
+
+        $kid = Member::where('name', 'Kid')->firstOrFail();
+
+        $this->assertDatabaseHas('relationships', [
+            'from_member_id' => $father->id,
+            'to_member_id' => $kid->id,
+            'type' => 'parent',
+        ]);
+        $this->assertDatabaseHas('relationships', [
+            'from_member_id' => $mother->id,
+            'to_member_id' => $kid->id,
+            'type' => 'parent',
+        ]);
+    }
+
     public function test_deleting_a_member_cascades_relationships(): void
     {
         $a = Member::create(['name' => 'A']);

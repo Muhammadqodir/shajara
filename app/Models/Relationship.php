@@ -11,6 +11,11 @@ class Relationship extends Model
         'from_member_id',
         'to_member_id',
         'type',
+        'married_at',
+    ];
+
+    protected $casts = [
+        'married_at' => 'date:Y-m-d',
     ];
 
     public function from(): BelongsTo

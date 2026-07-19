@@ -23,6 +23,7 @@ export interface Relationship {
     from_member_id: number;
     to_member_id: number;
     type: RelationshipType;
+    married_at: string | null;
 }
 
 export type MemberSummary = Pick<Member, 'id' | 'name' | 'surname' | 'photo_url'>;

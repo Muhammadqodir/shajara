@@ -61,6 +61,8 @@ return [
         'type' => 'Turi',
         'relate_to' => 'Bog\'lanadigan a\'zo',
         'relate_as' => 'Bog\'lanish turi',
+        'relate_to_spouse' => 'Ikkinchi ota-ona',
+        'married_at' => 'Turmush qurgan sana',
     ],
 
 ];

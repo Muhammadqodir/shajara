@@ -4,7 +4,8 @@ import type { Member, Relationship } from '@/types/family';
 
 export const NODE_WIDTH = 208;
 export const NODE_HEIGHT = 104;
-const SPOUSE_GAP = 26;
+// Wide enough to fit the little marriage card between a couple's two cards.
+const SPOUSE_GAP = 112;
 const RANK_SEP = 96;
 const NODE_SEP = 54;
 
@@ -22,6 +23,7 @@ export interface SpouseEdge {
     id: number;
     leftId: number;
     rightId: number;
+    marriedAt: string | null;
 }
 
 export interface FamilyLayout {
@@ -133,7 +135,9 @@ export function computeFamilyLayout(members: Member[], relationships: Relationsh
         const b = r.to_member_id;
         const ax = positions[a]?.x ?? 0;
         const bx = positions[b]?.x ?? 0;
-        return ax <= bx ? { id: r.id, leftId: a, rightId: b } : { id: r.id, leftId: b, rightId: a };
+        return ax <= bx
+            ? { id: r.id, leftId: a, rightId: b, marriedAt: r.married_at }
+            : { id: r.id, leftId: b, rightId: a, marriedAt: r.married_at };
     });
 
     const graphInfo = g.graph();

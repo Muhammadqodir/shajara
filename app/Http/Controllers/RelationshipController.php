@@ -56,6 +56,20 @@ class RelationshipController extends Controller
     }
 
     /**
+     * Update a relationship (currently just the marriage date on spouse links).
+     */
+    public function update(Request $request, Relationship $relationship): RedirectResponse
+    {
+        $data = $request->validate([
+            'married_at' => ['nullable', 'date'],
+        ]);
+
+        $relationship->update($data);
+
+        return back();
+    }
+
+    /**
      * Delete a relationship.
      */
     public function destroy(Relationship $relationship): RedirectResponse
